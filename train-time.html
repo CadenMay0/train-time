@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+
+<html lang="en-us">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Train Tracker</title>
+
+  <script src="https://cdn.jsdelivr.net/momentjs/2.12.0/moment.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/4.4.0/firebase.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"
+            integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+            crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/4.3.1/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+</head>
+
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Anytime is Train Time</h1>
+            <p>Choo Choo Chee Chee</p>
+        </div>
+                <table class="table">
+                    <tbody id="dataTable">
+                        <tr>
+                            <th>Train Name</th>
+                            <th>Destination</th>
+                            <th>Frequency(Min)</th>
+                            <th>Next Arrival</th>
+                            <th>Minutes Away</th>
+                        </tr>
+                    </tbody>
+                </table>
+            <div class="input-group">
+                <span class="input-group-addon">@</span>
+                <input type="text" class="form-control" placeholder="Train Name" id="nameIn" />
+                <input type="text" class="form-control" placeholder="Destination" id="destIn" />
+                <input type="text" class="form-control" placeholder="Start Time in Military Time (HH:mm)" id="startIn" />
+                <input type="text" class="form-control" placeholder="Frequency in Minutes" id="freqIn" />
+                <input type="button" class="btn btn-submit" id="submitBtn" />
+            </div>
+    </div>
+
+  <script>
+      // Initialize Firebase add snapshot with child number
+    var config = {
+        apiKey: "AIzaSyCx9jTbYk_Fw_EFbfaa_mEBq1h6AVCv7T4",
+        authDomain: "traintime-7d911.firebaseapp.com",
+        databaseURL: "https://traintime-7d911.firebaseio.com",
+        projectId: "traintime-7d911",
+        storageBucket: "traintime-7d911.appspot.com",
+        messagingSenderId: "674543398353"
+    };
+    firebase.initializeApp(config);
+
+    var database = firebase.database();
+    function buildTime(name, dest, freq, start) {
+        var firstTimeConverted = moment(start, "hh:mm").subtract(1, "years");
+
+        var currentTime = moment();
+
+        var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+
+        var tRemainder = diffTime % freq;
+
+        var tMinutesTillTrain = freq - tRemainder
+
+        var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+        var nextArrival= moment(nextTrain).format("hh:mm");
+
+        $("#dataTable").append("<tr> <td>" + name + "</td> <td>" + dest + "</td> <td>" + freq + "</td> <td>" + nextArrival + "</td> <td>" + tMinutesTillTrain + "</td> </tr>");
+    }
+
+      function loadDB() {
+          console.log("hello");
+          firebase.database().ref('trains/').once('value').then(function (snapshot) {
+              for (i = 0; i < snapshot.numChildren(); i++) {
+                  buildTime(snapshot.child([i]).name, snapshot.child('trains/')[i].destination, snapshot.child([i]).frequency, snapshot.child([i]).timeStart);
+              }
+          })
+
+      }
+
+      function addTrain() {
+          var nombre = $("#nameIn").val();
+          var loc = $("#destIn").val();
+          var beginning = $("#startIn").val();
+          var commonality = $("#freqIn").val();
+          firebase.database().ref('trains/' + nombre).set({
+              name: nombre,
+              destination: loc,
+              frequency: commonality,
+              timeStart: beginning
+          });
+          buildTime(nombre, loc, commonality, beginning);
+      }
+      $(document).ready(loadDB);
+      $("#submitBtn").on("click", addTrain);
+  </script>
+</body>
+
+</html>
