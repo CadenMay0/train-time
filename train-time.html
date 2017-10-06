@@ -38,12 +38,12 @@
                     </tbody>
                 </table>
             <div class="input-group">
-                <span class="input-group-addon">@</span>
+                <span class="input-group-addon">Train Info</span>
                 <input type="text" class="form-control" placeholder="Train Name" id="nameIn" />
                 <input type="text" class="form-control" placeholder="Destination" id="destIn" />
                 <input type="text" class="form-control" placeholder="Start Time in Military Time (HH:mm)" id="startIn" />
                 <input type="text" class="form-control" placeholder="Frequency in Minutes" id="freqIn" />
-                <input type="button" class="btn btn-submit" id="submitBtn" />
+                <input type="button" class="btn btn-submit" id="submitBtn" placeholder="Submit"/>
             </div>
     </div>
 
@@ -80,10 +80,10 @@
       function loadDB() {
           console.log("hello");
           firebase.database().ref('trains/').once('value').then(function (snapshot) {
-              for (i = 0; i < snapshot.numChildren(); i++) {
-                  buildTime(snapshot.child([i]).name, snapshot.child('trains/')[i].destination, snapshot.child([i]).frequency, snapshot.child([i]).timeStart);
-              }
-          })
+              snapshot.forEach(function (childSnapshot) {
+                  buildTime(childSnapshot.val().name, childSnapshot.val().destination, childSnapshot.val().frequency, childSnapshot.val().timeStart);
+              });
+          });
 
       }
 
